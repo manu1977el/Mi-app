@@ -1,78 +1,80 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Mi App Apuestas</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css">
-  <meta name="theme-color" content="#e6f0ff">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mi app ⚽</title>
+
+  <!-- Estilos básicos -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f8ff;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    header {
+      background-color: #007bff;
+      color: white;
+      padding: 1rem;
+      font-size: 1.5rem;
+    }
+    main {
+      padding: 2rem;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 0.7rem 1.2rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      margin: 0.5rem;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    footer {
+      margin-top: 2rem;
+      padding: 1rem;
+      background-color: #e0e0e0;
+      font-size: 0.9rem;
+      color: #555;
+    }
+  </style>
 </head>
+
 <body>
   <header>
-    <h1>Mi App Apuestas</h1>
-    <button id="btnInstall" hidden>Instalar</button>
-    <button id="btnSettings" aria-label="Ajustes">⚙️</button>
+    ⚽ mi app ⚽
   </header>
 
   <main>
-    <section class="card">
-      <h2>Crear Pick</h2>
-      <label>Competición
-        <select id="league" required></select>
-      </label>
+    <h1>Bienvenido a mi app</h1>
+    <p>Esta es la base de tu proyecto para cálculos y estadísticas deportivas.</p>
 
-      <label>Local
-        <select id="homeTeam" required></select>
-      </label>
+    <button onclick="openInputCentral()">Abrir InputCentral</button>
+    <button onclick="exportarExcel()">Exportar a Excel</button>
 
-      <label>Visitante
-        <select id="awayTeam" required></select>
-      </label>
-
-      <label>Fecha/Hora
-        <input id="kickoff" type="datetime-local" required>
-      </label>
-
-      <fieldset>
-        <legend>Mercados (cuotas decimales)</legend>
-        <div class="grid">
-          <label>1 (local) <input id="oddsH" type="number" step="0.001"></label>
-          <label>X (empate) <input id="oddsD" type="number" step="0.001"></label>
-          <label>2 (visitante) <input id="oddsA" type="number" step="0.001"></label>
-        </div>
-        <div class="grid">
-          <label>Over 2.5 <input id="oddsOver25" type="number" step="0.001"></label>
-          <label>Under 2.5 <input id="oddsUnder25" type="number" step="0.001"></label>
-          <label>BTTS Sí <input id="oddsBTTSYes" type="number" step="0.001"></label>
-        </div>
-      </fieldset>
-
-      <button id="btnCalc">Calcular</button>
-      <button id="btnSave" disabled>Guardar Pick</button>
-
-      <div id="results" class="results"></div>
-    </section>
-
-    <section class="card">
-      <h2>Historial</h2>
-      <div id="history"></div>
-      <button id="btnExport">Exportar CSV</button>
-    </section>
+    <p id="status"></p>
   </main>
 
-  <dialog id="settings">
-    <form method="dialog">
-      <h3>Ajustes</h3>
-      <label>API-Football Key <input id="apiKey" type="password" placeholder="x-apisports-key"></label>
-      <label>Temporada <input id="season" type="number" value="2025"></label>
-      <menu>
-        <button value="cancel">Cerrar</button>
-        <button id="btnSaveSettings" value="default">Guardar</button>
-      </menu>
-    </form>
-  </dialog>
+  <footer>
+    © 2025 mi app — Desarrollado por ti ⚙️
+  </footer>
 
-  <script src="script.js" defer></script>
+  <script>
+    function openInputCentral() {
+      // En el futuro aquí puedes integrar la hoja de Google Sheets o tus cálculos locales
+      window.open("https://docs.google.com/spreadsheets/d/1NwSORch9sUhoGUSXYkDGwZlTLj9IJpwBykWCqeoL1L4/edit", "_blank");
+    }
+
+    function exportarExcel() {
+      document.getElementById("status").textContent = "Exportando datos a Excel (función en desarrollo)...";
+    }
+  </script>
 </body>
 </html>
