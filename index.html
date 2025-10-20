@@ -2,121 +2,164 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>⚽ mi app ⚽</title>
-
-  <!-- PWA -->
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#007bff" />
-
-  <!-- Estilos -->
-  <link rel="stylesheet" href="styles.css" />
-
-  <meta name="description" content="App para crear picks multipick y ver resultados desde Google Sheets." />
-
   <style>
-    /* Estilos mínimos de refuerzo por si styles.css tarda en cargar */
-    body { margin:0; font-family: system-ui, -apple-system, Arial, sans-serif; background:#f4f8ff; color:#222; }
-    header { background:#007bff; color:#fff; text-align:center; padding:14px 10px; font-weight:700; }
-    main { max-width:880px; margin:0 auto; padding:16px; }
-    form { background:#fff; border-radius:10px; padding:14px; box-shadow:0 4px 16px rgba(0,0,0,.06); }
-    .row { display:flex; gap:12px; flex-wrap:wrap; }
-    .field { flex:1 1 220px; min-width:220px; display:flex; flex-direction:column; }
-    label { font-weight:600; margin:.45rem 0 .25rem; }
-    select, input { padding:.6rem .7rem; border:1px solid #cfd6e4; border-radius:8px; font-size:16px; background:#f8fbff; }
-    .markets { margin-top:12px; }
-    .market-item { display:flex; gap:10px; margin:8px 0; }
-    .market-item select, .market-item input { flex:1; }
-    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
-    button { border:0; border-radius:8px; padding:.8rem 1rem; font-weight:700; cursor:pointer; }
-    #addMarketBtn { background:#007bff; color:#fff; }
-    #removeMarketBtn { background:#dc3545; color:#fff; }
-    .primary { background:#0d6efd; color:#fff; }
-    .secondary { background:#6c757d; color:#fff; }
-    #resultado { margin-top:14px; }
-    footer { text-align:center; color:#667; font-size:.9rem; padding:20px 10px; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f7f9fb;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: #1e88e5;
+      color: white;
+      padding: 10px 0;
+      text-align: center;
+      font-size: 1.4em;
+      font-weight: 600;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    main {
+      padding: 15px;
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    label {
+      font-weight: 500;
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      color: #444;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 10px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 1em;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    #addMarketBtn {
+      background: #1e88e5;
+    }
+
+    #removeMarketBtn {
+      background: #d93025;
+    }
+
+    #saveBtn {
+      background: #00796b;
+    }
+
+    #clearBtn {
+      background: #555;
+    }
+
+    .market-item {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .market-item select {
+      flex: 2;
+    }
+
+    .market-item input {
+      flex: 1;
+    }
+
+    #resultado {
+      text-align: center;
+      margin-top: 15px;
+      font-weight: 500;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 0.9em;
+      color: #555;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body { background: #121212; color: #eee; }
+      main { background: #1f1f1f; color: #eee; }
+      input, select { background: #2b2b2b; color: #eee; border-color: #444; }
+      button { color: #fff; }
+    }
   </style>
 </head>
-
 <body>
   <header>⚽ mi app ⚽</header>
 
   <main>
-    <h2 style="margin:8px 0 14px">Crear nuevo pick (múltiples mercados)</h2>
+    <h2>Crear nuevo pick (múltiples mercados)</h2>
 
-    <form id="pickForm" autocomplete="off">
-      <!-- Liga y equipos -->
-      <div class="row">
-        <div class="field">
-          <label for="competicion">Liga / Competición</label>
-          <select id="competicion" required>
-            <option value="">Selecciona…</option>
-            <!-- Se rellena desde script.js (API-Football + fallback) -->
-          </select>
-        </div>
+    <form id="pickForm">
+      <label for="competicion">Liga / Competición</label>
+      <select id="competicion">
+        <option value="">Cargando ligas...</option>
+      </select>
 
-        <div class="field">
-          <label for="local">Equipo local</label>
-          <select id="local" required>
-            <option value="">Selecciona local…</option>
-          </select>
-        </div>
+      <label for="local">Equipo local</label>
+      <select id="local">
+        <option value="">Selecciona local...</option>
+      </select>
 
-        <div class="field">
-          <label for="visitante">Equipo visitante</label>
-          <select id="visitante" required>
-            <option value="">Selecciona visitante…</option>
-          </select>
-        </div>
-      </div>
+      <label for="visitante">Equipo visitante</label>
+      <select id="visitante">
+        <option value="">Selecciona visitante...</option>
+      </select>
 
-      <!-- Fecha y hora -->
-      <div class="row">
-        <div class="field">
-          <label for="fecha">Fecha</label>
-          <input id="fecha" type="date" required />
-        </div>
-        <div class="field">
-          <label for="hora">Hora</label>
-          <input id="hora" type="time" required />
-        </div>
-      </div>
+      <label for="fecha">Fecha</label>
+      <input type="date" id="fecha" />
 
-      <!-- Mercados ilimitados -->
-      <div class="markets">
-        <label>Mercados del pick (ilimitados)</label>
-        <div id="marketsContainer"></div>
+      <label for="hora">Hora</label>
+      <input type="time" id="hora" />
 
-        <div class="actions">
-          <button type="button" id="addMarketBtn">+ Añadir mercado</button>
-          <button type="button" id="removeMarketBtn">– Quitar último</button>
-        </div>
-      </div>
+      <label>Mercados del pick (ilimitados)</label>
+      <div id="marketsContainer"></div>
 
-      <!-- Acciones -->
-      <div class="actions">
-        <button type="submit" class="primary">Guardar pick</button>
-        <button type="button" id="clearBtn" class="secondary">Limpiar</button>
-      </div>
+      <button type="button" id="addMarketBtn">+ Añadir mercado</button>
+      <button type="button" id="removeMarketBtn">– Quitar último</button>
+      <button type="submit" id="saveBtn">Guardar pick</button>
+      <button type="button" id="clearBtn">Limpiar</button>
     </form>
 
     <div id="resultado"></div>
   </main>
 
-  <footer>© 2025 mi app — Apuestas PRO</footer>
+  <footer>
+    © 2025 Apuestas PRO — API Football (temporada 2025/26)
+  </footer>
 
-  <noscript>Necesitas activar JavaScript para usar esta app.</noscript>
-
-  <!-- App -->
   <script src="script.js"></script>
-
-  <!-- Registro del Service Worker para PWA -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js').catch(() => {});
-      });
-    }
-  </script>
 </body>
 </html>
