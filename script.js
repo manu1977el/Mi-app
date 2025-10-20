@@ -7,8 +7,8 @@
 
 /* ============ 1) CONFIGURACIÓN ============ */
 // 👉 Pega tus claves aquí:
-const API_FOOTBALL_KEY = 'TU_API_FOOTBALL_KEY_AQUI';   // <-- tu key de API-Football
-const API_KEY = 'TU_API_KEY_GOOGLE_SHEETS_AQUI';       // <-- tu API key de Google (Sheets)
+const API_FOOTBALL_KEY = '6DF57D1853E112002FA1139673F50218';   // <-- tu key de API-Football
+const API_KEY = 'AIzaSyAXFN5M7p9bk9W2g7O9ohmZOWpeO_CpCek';       // <-- tu API key de Google (Sheets)
 const SPREADSHEET_ID = '1NwSORch9sUhoGUSXYkDGwZlTLj9IJpwBykWCqeoL1L4';
 const SHEET_NAME = 'InputCentral';
 
