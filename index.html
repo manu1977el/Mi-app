@@ -2,34 +2,39 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>⚽ mi app ⚽</title>
 
+  <!-- PWA -->
   <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#007bff" />
+
+  <!-- Estilos -->
   <link rel="stylesheet" href="styles.css" />
 
-  <meta name="theme-color" content="#007bff" />
-  <meta name="description" content="App de gestión de picks y apuestas con cálculos automáticos conectados a Google Sheets.">
-  
+  <meta name="description" content="App para crear picks multipick y ver resultados desde Google Sheets." />
+
   <style>
-    body { font-family: Arial, sans-serif; background:#f4f8ff; color:#333; margin:0; }
-    header { background:#007bff; color:#fff; padding:1rem; font-size:1.4rem; text-align:center; }
-    main { padding:1rem; max-width:800px; margin:0 auto; }
-    form { background:#fff; padding:1rem; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,.08); }
-    .row { display:flex; gap:10px; flex-wrap:wrap; }
-    .field { flex:1 1 180px; min-width:180px; display:flex; flex-direction:column; }
-    label { font-weight:600; margin:.35rem 0; }
-    input, select { padding:.55rem; border:1px solid #ccc; border-radius:6px; font-size:1rem; }
-    .markets { margin-top:1rem; }
-    .market-item { display:flex; gap:8px; margin-bottom:8px; }
+    /* Estilos mínimos de refuerzo por si styles.css tarda en cargar */
+    body { margin:0; font-family: system-ui, -apple-system, Arial, sans-serif; background:#f4f8ff; color:#222; }
+    header { background:#007bff; color:#fff; text-align:center; padding:14px 10px; font-weight:700; }
+    main { max-width:880px; margin:0 auto; padding:16px; }
+    form { background:#fff; border-radius:10px; padding:14px; box-shadow:0 4px 16px rgba(0,0,0,.06); }
+    .row { display:flex; gap:12px; flex-wrap:wrap; }
+    .field { flex:1 1 220px; min-width:220px; display:flex; flex-direction:column; }
+    label { font-weight:600; margin:.45rem 0 .25rem; }
+    select, input { padding:.6rem .7rem; border:1px solid #cfd6e4; border-radius:8px; font-size:16px; background:#f8fbff; }
+    .markets { margin-top:12px; }
+    .market-item { display:flex; gap:10px; margin:8px 0; }
     .market-item select, .market-item input { flex:1; }
-    .actions { display:flex; gap:10px; margin-top:.5rem; flex-wrap:wrap; }
-    button { background:#007bff; color:#fff; border:0; padding:.7rem 1rem; border-radius:6px; cursor:pointer; }
-    button.secondary { background:#6c757d; }
-    button.danger { background:#dc3545; }
-    button:hover { opacity:0.9; }
-    #resultado { margin-top:1rem; font-size:1rem; }
-    footer { margin:2rem 0 1rem; text-align:center; color:#666; font-size:.9rem; }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+    button { border:0; border-radius:8px; padding:.8rem 1rem; font-weight:700; cursor:pointer; }
+    #addMarketBtn { background:#007bff; color:#fff; }
+    #removeMarketBtn { background:#dc3545; color:#fff; }
+    .primary { background:#0d6efd; color:#fff; }
+    .secondary { background:#6c757d; color:#fff; }
+    #resultado { margin-top:14px; }
+    footer { text-align:center; color:#667; font-size:.9rem; padding:20px 10px; }
   </style>
 </head>
 
@@ -37,14 +42,16 @@
   <header>⚽ mi app ⚽</header>
 
   <main>
-    <h2>Crear nuevo pick (múltiples mercados)</h2>
+    <h2 style="margin:8px 0 14px">Crear nuevo pick (múltiples mercados)</h2>
 
-    <form id="pickForm">
+    <form id="pickForm" autocomplete="off">
+      <!-- Liga y equipos -->
       <div class="row">
         <div class="field">
           <label for="competicion">Liga / Competición</label>
           <select id="competicion" required>
-            <option value="">Selecciona...</option>
+            <option value="">Selecciona…</option>
+            <!-- Se rellena desde script.js (API-Football + fallback) -->
           </select>
         </div>
 
@@ -63,6 +70,7 @@
         </div>
       </div>
 
+      <!-- Fecha y hora -->
       <div class="row">
         <div class="field">
           <label for="fecha">Fecha</label>
@@ -74,17 +82,20 @@
         </div>
       </div>
 
+      <!-- Mercados ilimitados -->
       <div class="markets">
         <label>Mercados del pick (ilimitados)</label>
         <div id="marketsContainer"></div>
+
         <div class="actions">
           <button type="button" id="addMarketBtn">+ Añadir mercado</button>
-          <button type="button" id="removeMarketBtn" class="danger">– Quitar último</button>
+          <button type="button" id="removeMarketBtn">– Quitar último</button>
         </div>
       </div>
 
+      <!-- Acciones -->
       <div class="actions">
-        <button type="submit">Guardar pick</button>
+        <button type="submit" class="primary">Guardar pick</button>
         <button type="button" id="clearBtn" class="secondary">Limpiar</button>
       </div>
     </form>
@@ -92,8 +103,20 @@
     <div id="resultado"></div>
   </main>
 
-  <footer>© 2025 mi app — Apuestas PRO 🌍</footer>
+  <footer>© 2025 mi app — Apuestas PRO</footer>
 
+  <noscript>Necesitas activar JavaScript para usar esta app.</noscript>
+
+  <!-- App -->
   <script src="script.js"></script>
+
+  <!-- Registro del Service Worker para PWA -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>
