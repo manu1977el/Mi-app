@@ -1,9 +1,22 @@
 {
-  "name": "Mi App Apuestas",
-  "short_name": "Apuestas",
-  "start_url": ".",
+  "name": "mi app",
+  "short_name": "mi app",
+  "description": "Aplicación web de cálculos y estadísticas deportivas basada en mi app ⚽",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#e6f0ff",
-  "theme_color": "#e6f0ff",
-  "icons": []
+  "background_color": "#f4f8ff",
+  "theme_color": "#007bff",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
