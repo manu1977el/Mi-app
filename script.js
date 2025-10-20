@@ -1,33 +1,25 @@
 /****************************************************
- * ⚽ Apuestas PRO - Script Principal
- * Compatible con PWA, API-Football y Google Forms
+ * ⚽ Apuestas PRO - Script v2 (API + Respaldo Local)
+ * Funciona online/offline y sin OAuth
  ****************************************************/
 
-// === CONFIGURACIÓN GENERAL ===
-
-// ⚽ Clave API-Football (tuya, válida)
-const API_KEY = "6eecb8f6b2msh1fa9a857ab6cc3cp1d8e02jsnfe1c0e19b80f";  
-
-// 🗓 Temporada actual
+const API_KEY = "6eecb8f6b2msh1fa9a857ab6cc3cp1d8e02jsnfe1c0e19b80f";
 const TEMPORADA = 2025;
-
-// 🧾 Enlace de Google Forms (respuestas conectadas a tu hoja InputCentral)
 const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScPMq8walvuMKxyoHyEADajAu1RkqUoV_M499z2U22KiPamDA/formResponse";
 
-
-// === FUNCIÓN PRINCIPAL ===
 document.addEventListener("DOMContentLoaded", async () => {
   await cargarLigas();
   inicializarEventos();
 });
 
-
-// === CARGAR LIGAS ===
+/***********************
+ * CARGAR LIGAS
+ ***********************/
 async function cargarLigas() {
   const select = document.getElementById("competicion");
   select.innerHTML = '<option value="">Cargando ligas...</option>';
 
-  // Primero intenta leer desde caché local
+  // Cache local
   const cache = localStorage.getItem("ligas");
   if (cache) {
     try {
@@ -42,33 +34,57 @@ async function cargarLigas() {
       headers: { "x-apisports-key": API_KEY }
     });
     const data = await res.json();
+
     if (data.response && data.response.length > 0) {
       localStorage.setItem("ligas", JSON.stringify(data.response));
       rellenarLigas(data.response);
     } else {
-      select.innerHTML = '<option value="">⚠️ No se encontraron ligas.</option>';
+      console.warn("No se encontraron ligas, usando respaldo local...");
+      cargarLigasRespaldo();
     }
   } catch (error) {
     console.error("Error al cargar ligas:", error);
-    select.innerHTML = '<option value="">❌ Error al cargar ligas</option>';
+    cargarLigasRespaldo();
   }
+}
+
+/***********************
+ * RESPALDO LOCAL
+ ***********************/
+function cargarLigasRespaldo() {
+  const ligasBackup = [
+    { id: 140, name: "La Liga", country: "España" },
+    { id: 39, name: "Premier League", country: "Inglaterra" },
+    { id: 135, name: "Serie A", country: "Italia" },
+    { id: 78, name: "Bundesliga", country: "Alemania" },
+    { id: 61, name: "Ligue 1", country: "Francia" },
+    { id: 2, name: "Champions League", country: "Europa" },
+    { id: 3, name: "Europa League", country: "Europa" },
+    { id: 848, name: "Conference League", country: "Europa" }
+  ];
+
+  const data = ligasBackup.map(l => ({
+    league: { id: l.id, name: l.name },
+    country: { name: l.country }
+  }));
+
+  rellenarLigas(data);
 }
 
 function rellenarLigas(ligas) {
   const select = document.getElementById("competicion");
   select.innerHTML = '<option value="">Selecciona liga...</option>';
   ligas.forEach(l => {
-    if (l.league && l.country) {
-      const opt = document.createElement("option");
-      opt.value = l.league.id;
-      opt.textContent = `${l.league.name} (${l.country.name})`;
-      select.appendChild(opt);
-    }
+    const opt = document.createElement("option");
+    opt.value = l.league.id;
+    opt.textContent = `${l.league.name} (${l.country.name})`;
+    select.appendChild(opt);
   });
 }
 
-
-// === CARGAR EQUIPOS ===
+/***********************
+ * CARGAR EQUIPOS
+ ***********************/
 async function cargarEquipos(leagueId) {
   if (!leagueId) return;
 
@@ -78,7 +94,6 @@ async function cargarEquipos(leagueId) {
   localSel.innerHTML = '<option value="">Cargando...</option>';
   visitSel.innerHTML = '<option value="">Cargando...</option>';
 
-  // Cache local
   const cache = localStorage.getItem("equipos_" + leagueId);
   if (cache) {
     try {
@@ -93,18 +108,36 @@ async function cargarEquipos(leagueId) {
       headers: { "x-apisports-key": API_KEY }
     });
     const data = await res.json();
+
     if (data.response && data.response.length > 0) {
       localStorage.setItem("equipos_" + leagueId, JSON.stringify(data.response));
       rellenarEquipos(data.response);
     } else {
-      localSel.innerHTML = '<option value="">⚠️ Sin equipos</option>';
-      visitSel.innerHTML = '<option value="">⚠️ Sin equipos</option>';
+      console.warn("No se encontraron equipos, usando respaldo local...");
+      cargarEquiposRespaldo(leagueId);
     }
   } catch (error) {
     console.error("Error al cargar equipos:", error);
-    localSel.innerHTML = '<option value="">❌ Error</option>';
-    visitSel.innerHTML = '<option value="">❌ Error</option>';
+    cargarEquiposRespaldo(leagueId);
   }
+}
+
+/***********************
+ * EQUIPOS DE RESPALDO
+ ***********************/
+function cargarEquiposRespaldo(leagueId) {
+  let equiposBackup = [];
+  switch (parseInt(leagueId)) {
+    case 140: equiposBackup = ["Real Madrid", "Barcelona", "Atlético Madrid", "Sevilla"]; break;
+    case 39: equiposBackup = ["Manchester City", "Arsenal", "Liverpool", "Chelsea"]; break;
+    case 135: equiposBackup = ["Juventus", "Inter", "Milan", "Napoli"]; break;
+    case 78: equiposBackup = ["Bayern", "Dortmund", "Leipzig", "Leverkusen"]; break;
+    case 61: equiposBackup = ["PSG", "Marseille", "Lyon", "Monaco"]; break;
+    default: equiposBackup = ["Equipo A", "Equipo B"];
+  }
+
+  const lista = equiposBackup.map(name => ({ team: { name } }));
+  rellenarEquipos(lista);
 }
 
 function rellenarEquipos(lista) {
@@ -124,8 +157,9 @@ function rellenarEquipos(lista) {
   });
 }
 
-
-// === MERCADOS ===
+/***********************
+ * MERCADOS ILIMITADOS
+ ***********************/
 function añadirMercado() {
   const cont = document.getElementById("marketsContainer");
   const div = document.createElement("div");
@@ -149,8 +183,9 @@ function quitarMercado() {
   if (cont.children.length > 1) cont.removeChild(cont.lastElementChild);
 }
 
-
-// === GUARDAR PICK ===
+/***********************
+ * GUARDAR PICK
+ ***********************/
 function guardarPick(e) {
   e.preventDefault();
 
@@ -171,9 +206,8 @@ function guardarPick(e) {
     cuota: m.querySelector(".cuota").value || "-"
   }));
 
-  // Google Forms params
   const params = new URLSearchParams();
-  params.append("entry.665021726", Date.now()); // ID único
+  params.append("entry.665021726", Date.now());
   params.append("entry.985276955", `${local} - ${visitante}`);
   params.append("entry.808650380", liga);
   params.append("entry.867530469", fecha);
@@ -189,8 +223,9 @@ function guardarPick(e) {
     });
 }
 
-
-// === LIMPIAR FORMULARIO ===
+/***********************
+ * LIMPIAR Y EVENTOS
+ ***********************/
 function limpiarFormulario() {
   document.getElementById("pickForm").reset();
   const cont = document.getElementById("marketsContainer");
@@ -199,8 +234,6 @@ function limpiarFormulario() {
   mostrarMensaje("Formulario limpio ✅", "gris");
 }
 
-
-// === MENSAJES ===
 function mostrarMensaje(texto, color) {
   const msg = document.getElementById("resultado");
   msg.textContent = texto;
@@ -211,18 +244,13 @@ function mostrarMensaje(texto, color) {
   setTimeout(() => msg.textContent = "", 4000);
 }
 
-
-// === EVENTOS PRINCIPALES ===
 function inicializarEventos() {
   document.getElementById("competicion").addEventListener("change", e => {
     cargarEquipos(e.target.value);
   });
-
   document.getElementById("addMarketBtn").addEventListener("click", añadirMercado);
   document.getElementById("removeMarketBtn").addEventListener("click", quitarMercado);
   document.getElementById("clearBtn").addEventListener("click", limpiarFormulario);
   document.getElementById("pickForm").addEventListener("submit", guardarPick);
-
-  // Agrega un primer mercado por defecto
   añadirMercado();
 }
