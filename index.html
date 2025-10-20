@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mi app ⚽</title>
+  <link rel="stylesheet" href="styles.css" />
 
-  <!-- Estilos básicos -->
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -22,25 +22,52 @@
       font-size: 1.5rem;
     }
     main {
-      padding: 2rem;
+      padding: 1.5rem;
+    }
+    form {
+      background-color: white;
+      max-width: 420px;
+      margin: 1rem auto;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+    label {
+      text-align: left;
+      font-weight: bold;
+    }
+    select, input {
+      padding: 0.6rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      width: 100%;
     }
     button {
       background-color: #007bff;
       color: white;
       border: none;
-      padding: 0.7rem 1.2rem;
-      border-radius: 6px;
-      cursor: pointer;
+      padding: 0.8rem 1.4rem;
+      border-radius: 5px;
       font-size: 1rem;
-      margin: 0.5rem;
+      cursor: pointer;
+      margin-top: 0.5rem;
     }
     button:hover {
       background-color: #0056b3;
     }
+    #resultado {
+      margin-top: 1rem;
+      font-size: 1rem;
+      color: #333;
+    }
     footer {
+      background-color: #e0e0e0;
       margin-top: 2rem;
       padding: 1rem;
-      background-color: #e0e0e0;
       font-size: 0.9rem;
       color: #555;
     }
@@ -48,33 +75,43 @@
 </head>
 
 <body>
-  <header>
-    ⚽ mi app ⚽
-  </header>
+  <header>⚽ mi app ⚽</header>
 
   <main>
-    <h1>Bienvenido a mi app</h1>
-    <p>Esta es la base de tu proyecto para cálculos y estadísticas deportivas.</p>
+    <h2>Crear nuevo pick</h2>
 
-    <button onclick="openInputCentral()">Abrir InputCentral</button>
-    <button onclick="exportarExcel()">Exportar a Excel</button>
+    <form id="pickForm">
+      <label for="competicion">Competición:</label>
+      <select id="competicion" required>
+        <option value="">Selecciona...</option>
+      </select>
 
-    <p id="status"></p>
+      <label for="local">Equipo local:</label>
+      <select id="local" required>
+        <option value="">Selecciona local...</option>
+      </select>
+
+      <label for="visitante">Equipo visitante:</label>
+      <select id="visitante" required>
+        <option value="">Selecciona visitante...</option>
+      </select>
+
+      <label for="mercado">Mercado:</label>
+      <select id="mercado" required>
+        <option value="">Selecciona...</option>
+      </select>
+
+      <label for="cuota">Cuota:</label>
+      <input type="number" id="cuota" step="0.01" min="1.01" required placeholder="Ej: 2.35" />
+
+      <button type="submit">Añadir Pick</button>
+    </form>
+
+    <div id="resultado"></div>
   </main>
 
-  <footer>
-    © 2025 mi app — Desarrollado por ti ⚙️
-  </footer>
+  <footer>© 2025 mi app — Desarrollado por ti ⚙️</footer>
 
-  <script>
-    function openInputCentral() {
-      // En el futuro aquí puedes integrar la hoja de Google Sheets o tus cálculos locales
-      window.open("https://docs.google.com/spreadsheets/d/1NwSORch9sUhoGUSXYkDGwZlTLj9IJpwBykWCqeoL1L4/edit", "_blank");
-    }
-
-    function exportarExcel() {
-      document.getElementById("status").textContent = "Exportando datos a Excel (función en desarrollo)...";
-    }
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
