@@ -1,40 +1,42 @@
 /************************************************************
- * mi app — script.js
- * - Competiciones y equipos vía API-Football (season 2025/26)
- * - Fallback interno si la API falla (offline ready)
- * - Envío de pick a Google Sheets (InputCentral) + lectura resultados
+ * mi app — script.js (multipick ilimitado)
+ * Funciona con tu hoja InputCentral y Formulario Google
  ************************************************************/
 
-/* ============ 1) CONFIGURACIÓN ============ */
-// 👉 Pega tus claves aquí:
-const API_FOOTBALL_KEY = '6DF57D1853E112002FA1139673F50218';   // <-- tu key de API-Football
-const API_KEY = 'AIzaSyAXFN5M7p9bk9W2g7O9ohmZOWpeO_CpCek';       // <-- tu API key de Google (Sheets)
-const SPREADSHEET_ID = '1NwSORch9sUhoGUSXYkDGwZlTLj9IJpwBykWCqeoL1L4';
-const SHEET_NAME = 'InputCentral';
-
-// Temporada (API-Football usa integer de año inicial)
+// ⚽ API-Football
+const API_FOOTBALL_KEY = 'TU_API_FOOTBALL_KEY_AQUI'; // ← cambia por tu key real
 const SEASON = 2025;
 
-// ⚠️ IMPORTANTE (Google Sheets):
-// Con API Key normal, Google Sheets API permite lectura pública,
-// pero el "append" puede requerir OAuth. Este script lo intenta.
-// Si obtienes 401/403 al enviar, verás un aviso y el pick se guardará
-// temporalmente en localStorage. Luego podrás configurar un Google Form
-// como vía de escritura y yo te doy el código de envío por Form.
-// (Mientras tanto, seguirás pudiendo LEER resultados.)
+// 📄 Google Sheets
+const GOOGLE_SHEETS_API_KEY = 'AIzaSyAXFN5M7p9bk9W2g7O9ohmZOWpeO_CpCek';
+const SPREADSHEET_ID = '1NwSORch9sUhoGUSXYkDGwZlTLj9IJpwBykWCqeoL1L4';
+const SHEET_NAME = 'InputCentral';
+const RESULT_RANGE = `${SHEET_NAME}!H2:L2`;
 
-/* ============ 2) COMPETICIONES OBJETIVO ============ */
-/*
-  IDs de API-Football (usados ampliamente):
-  - Premier League: 39
-  - LaLiga: 140
-  - Serie A: 135
-  - Bundesliga: 78
-  - Ligue 1: 61
-  - UEFA Champions League: 2
-  - UEFA Europa League: 3
-  - UEFA Conference League: 848
-*/
+// 📮 Google Forms (ya configurado)
+const FORM_VIEW_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScPMq8walvuMKxyoHyEADajAu1RkqUoV_M499z2U22KiPamDA/viewform?usp=header';
+const FORM_POST_URL = FORM_VIEW_URL.replace('/viewform', '/formResponse');
+
+// Mapeo correcto de tus entry IDs
+const ENTRY = {
+  ID:        'entry.665021726',
+  PARTIDO:   'entry.985276955',
+  LIGA:      'entry.808650380',
+  FECHA:     'entry.867530469',
+  HORA:      'entry.488584768',
+  MERCADO:   'entry.116813127',
+  CUOTA:     'entry.2145825007'
+};
+
+// Mercados disponibles
+const MARKETS = [
+  '1X2',
+  'Over/Under 0.5','Over/Under 1.5','Over/Under 2.5','Over/Under 3.5',
+  'Ambos marcan',
+  'Hándicap -0.5','Hándicap +0.5','Hándicap -1.0','Hándicap +1.0'
+];
+
+// Ligas principales + europeas
 const COMPETITIONS = [
   { id: 140, name: 'LaLiga (España)' },
   { id: 39,  name: 'Premier League (Inglaterra)' },
@@ -43,263 +45,161 @@ const COMPETITIONS = [
   { id: 61,  name: 'Ligue 1 (Francia)' },
   { id: 2,   name: 'UEFA Champions League' },
   { id: 3,   name: 'UEFA Europa League' },
-  { id: 848, name: 'UEFA Conference League' },
+  { id: 848, name: 'UEFA Conference League' }
 ];
 
-/* ============ 3) FALLBACK INTERNO (equipos mínimos) ============ */
-/* Nota: Solo listado base para emergencia/offline.
-   En condiciones normales, se cargarán TODOS los equipos desde la API. */
+// Fallback de equipos (offline)
 const FALLBACK_TEAMS = {
-  140: ['Real Madrid', 'Barcelona', 'Atlético Madrid', 'Sevilla', 'Real Sociedad', 'Athletic Club', 'Valencia', 'Villarreal', 'Betis', 'Celta'],
-  39:  ['Manchester City', 'Arsenal', 'Liverpool', 'Manchester United', 'Chelsea', 'Tottenham', 'Newcastle', 'Aston Villa', 'West Ham', 'Brighton'],
-  135: ['Inter', 'Milan', 'Juventus', 'Napoli', 'Roma', 'Lazio', 'Atalanta', 'Fiorentina', 'Bologna', 'Torino'],
-  78:  ['Bayern München', 'Borussia Dortmund', 'RB Leipzig', 'Bayer Leverkusen', 'Eintracht Frankfurt', 'SC Freiburg', 'Hoffenheim', 'Wolfsburg', 'Mainz', 'Stuttgart'],
-  61:  ['Paris Saint-Germain', 'Marseille', 'Lyon', 'Monaco', 'Lille', 'Rennes', 'Nice', 'Nantes', 'Montpellier', 'Lens'],
-  2:   ['(Se carga desde API-CL)'],
-  3:   ['(Se carga desde API-EL)'],
-  848: ['(Se carga desde API-Conference)']
+  140: ['Real Madrid','Barcelona','Atlético Madrid','Sevilla','Real Sociedad','Athletic Club','Valencia','Villarreal','Betis','Celta'],
+  39:  ['Manchester City','Arsenal','Liverpool','Manchester United','Chelsea','Tottenham','Newcastle','Aston Villa','West Ham','Brighton'],
+  135: ['Inter','Milan','Juventus','Napoli','Roma','Lazio','Atalanta','Fiorentina','Bologna','Torino'],
+  78:  ['Bayern München','Borussia Dortmund','RB Leipzig','Bayer Leverkusen','Eintracht Frankfurt','SC Freiburg','Hoffenheim','Wolfsburg','Mainz','Stuttgart'],
+  61:  ['Paris Saint-Germain','Marseille','Lyon','Monaco','Lille','Rennes','Nice','Nantes','Montpellier','Lens']
 };
 
-/* ============ 4) MERCADOS DISPONIBLES ============ */
-const MARKETS = [
-  '1X2',
-  'Over/Under 0.5',
-  'Over/Under 1.5',
-  'Over/Under 2.5',
-  'Over/Under 3.5',
-  'Ambos marcan',
-  'Hándicap -0.5',
-  'Hándicap +0.5',
-  'Hándicap -1.0',
-  'Hándicap +1.0'
-];
-
-/* ============ 5) SELECTORES Y ESTADO ============ */
+// --- VARIABLES DE ELEMENTOS ---
 const $comp = document.getElementById('competicion');
 const $home = document.getElementById('local');
 const $away = document.getElementById('visitante');
-const $market = document.getElementById('mercado');
-const $odds = document.getElementById('cuota');
+const $fecha = document.getElementById('fecha');
+const $hora = document.getElementById('hora');
+const $marketsContainer = document.getElementById('marketsContainer');
+const $addMarketBtn = document.getElementById('addMarketBtn');
+const $removeMarketBtn = document.getElementById('removeMarketBtn');
 const $result = document.getElementById('resultado');
+const $form = document.getElementById('pickForm');
 
-const apiFootballBase = 'https://v3.football.api-sports.io';
-const teamsCache = new Map(); // cache por leagueId
+const teamsCache = new Map();
 
-/* ============ 6) INICIALIZACIÓN INTERFAZ ============ */
+// --- INICIALIZAR ---
+(function init() {
+  populateCompetitions();
+  addMarketRow();
+  wireEvents();
+})();
+
+// --- EVENTOS ---
+function wireEvents() {
+  $comp.addEventListener('change', async () => {
+    const leagueId = parseInt($comp.value, 10);
+    notify('⏳ Cargando equipos...', 'gray');
+    const teams = await fetchTeamsByLeague(leagueId);
+    fillTeamSelects(teams);
+    notify('');
+  });
+
+  $addMarketBtn.addEventListener('click', addMarketRow);
+  $removeMarketBtn.addEventListener('click', removeLastMarketRow);
+
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    $form.reset();
+    $marketsContainer.innerHTML = '';
+    addMarketRow();
+    $result.innerHTML = '';
+  });
+
+  $form.addEventListener('submit', onSubmitPick);
+}
+
+// --- COMPETICIONES Y EQUIPOS ---
 function populateCompetitions() {
   $comp.innerHTML = '<option value="">Selecciona...</option>';
-  for (const c of COMPETITIONS) {
+  COMPETITIONS.forEach(c => {
     const opt = document.createElement('option');
-    opt.value = String(c.id);
+    opt.value = c.id;
     opt.textContent = c.name;
     $comp.appendChild(opt);
-  }
+  });
 }
 
-function populateMarkets() {
-  $market.innerHTML = '';
-  for (const m of MARKETS) {
-    const opt = document.createElement('option');
-    opt.value = m;
-    opt.textContent = m;
-    $market.appendChild(opt);
-  }
-}
-
-/* ============ 7) CARGA DE EQUIPOS (API-FOOTBALL + FALLBACK) ============ */
 async function fetchTeamsByLeague(leagueId) {
   if (teamsCache.has(leagueId)) return teamsCache.get(leagueId);
-
   try {
-    const url = `${apiFootballBase}/teams?league=${leagueId}&season=${SEASON}`;
-    const res = await fetch(url, {
+    const res = await fetch(`https://v3.football.api-sports.io/teams?league=${leagueId}&season=${SEASON}`, {
       headers: { 'x-apisports-key': API_FOOTBALL_KEY }
     });
-    if (!res.ok) throw new Error('API-Football error: ' + res.status);
     const data = await res.json();
-    const teams = (data.response || [])
-      .map(x => x.team && x.team.name)
-      .filter(Boolean)
-      .sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
-
-    if (teams.length) {
-      teamsCache.set(leagueId, teams);
-      return teams;
-    }
-    // si API vacía, cae al fallback
-    throw new Error('API-Football sin equipos');
-  } catch (err) {
-    console.warn('[Fallback] Usando equipos locales para liga', leagueId, err.message);
-    const fallback = FALLBACK_TEAMS[leagueId] || [];
-    teamsCache.set(leagueId, fallback);
-    return fallback;
+    const teams = data.response.map(r => r.team.name);
+    teamsCache.set(leagueId, teams);
+    return teams;
+  } catch {
+    return FALLBACK_TEAMS[leagueId] || [];
   }
 }
 
 function fillTeamSelects(teams) {
-  const makeOptions = (list) => list.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
-  $home.innerHTML = `<option value="">Selecciona local...</option>${makeOptions(teams)}`;
-  $away.innerHTML = `<option value="">Selecciona visitante...</option>${makeOptions(teams)}`;
+  const opts = teams.map(t => `<option>${t}</option>`).join('');
+  $home.innerHTML = `<option value="">Selecciona local…</option>${opts}`;
+  $away.innerHTML = `<option value="">Selecciona visitante…</option>${opts}`;
 }
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, (m) => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[m]));
+// --- MERCADOS ILIMITADOS ---
+function addMarketRow() {
+  const div = document.createElement('div');
+  div.className = 'market-item';
+  div.innerHTML = `
+    <select class="market-select">${MARKETS.map(m => `<option>${m}</option>`).join('')}</select>
+    <input class="market-odds" type="number" step="0.01" min="1.01" placeholder="Cuota" required>
+  `;
+  $marketsContainer.appendChild(div);
+}
+function removeLastMarketRow() {
+  const items = $marketsContainer.querySelectorAll('.market-item');
+  if (items.length > 1) items[items.length - 1].remove();
 }
 
-/* ============ 8) HANDLERS UI ============ */
-$comp.addEventListener('change', async () => {
-  const leagueId = parseInt($comp.value, 10);
-  $home.disabled = true; $away.disabled = true;
-
-  $result.innerHTML = '<p>⏳ Cargando equipos…</p>';
-  const teams = await fetchTeamsByLeague(leagueId);
-  fillTeamSelects(teams);
-  $result.innerHTML = '';
-
-  $home.disabled = false; $away.disabled = false;
-});
-
-/* ============ 9) ENVÍO DEL PICK A SHEETS + LECTURA RESULTADOS ============ */
-document.getElementById('pickForm').addEventListener('submit', async (e) => {
+// --- ENVÍO PICK ---
+async function onSubmitPick(e) {
   e.preventDefault();
+  const partido = `${$home.value} - ${$away.value}`;
+  const liga = $comp.options[$comp.selectedIndex].text;
+  const fecha = $fecha.value;
+  const hora = $hora.value;
+  const mercados = [...document.querySelectorAll('.market-select')].map(s => s.value).join(' / ');
+  const cuotas = [...document.querySelectorAll('.market-odds')].map(i => i.value).join(' / ');
 
-  // Validaciones básicas
-  if (!$comp.value) return notify('Selecciona una competición.', 'red');
-  if (!$home.value || !$away.value) return notify('Selecciona equipos.', 'red');
-  if ($home.value === $away.value) return notify('Los equipos no pueden ser iguales.', 'red');
-  if (!$odds.value || Number($odds.value) <= 1.0) return notify('Introduce una cuota válida (>1.0).', 'red');
+  const form = new FormData();
+  form.append(ENTRY.ID, '');
+  form.append(ENTRY.PARTIDO, partido);
+  form.append(ENTRY.LIGA, liga);
+  form.append(ENTRY.FECHA, fecha);
+  form.append(ENTRY.HORA, hora);
+  form.append(ENTRY.MERCADO, mercados);
+  form.append(ENTRY.CUOTA, cuotas);
 
-  const pick = {
-    competicion: $comp.options[$comp.selectedIndex].textContent,
-    competitionId: $comp.value,
-    local: $home.value,
-    visitante: $away.value,
-    mercado: $market.value,
-    cuota: parseFloat($odds.value)
-  };
-
-  // Intento de APPEND (puede requerir OAuth; si falla, almacenamos localmente)
-  const appendOk = await tryAppendPickToSheet(pick);
-
-  // Mensajes + limpieza
-  if (appendOk) {
-    notify('✅ Pick enviado correctamente. Calculando…', 'green');
-    e.target.reset();
-    // tras reset, recarga mercados
-    populateMarkets();
-    // vuelve a bloquear selects hasta que se elija competición de nuevo
-    $home.innerHTML = '<option value="">Selecciona local…</option>';
-    $away.innerHTML = '<option value="">Selecciona visitante…</option>';
-
-    // Poll de resultados (ajusta el rango a tu hoja)
-    await pollResultados(5, 1200); // 5 intentos, 1.2s entre ellos
-  } else {
-    // Guardado local como emergencia
-    savePickLocally(pick);
-    notify('⚠️ No se pudo escribir en Sheets (posible restricción OAuth). Guardé el pick localmente. Puedo darte el envío vía Google Forms para escritura sin OAuth.', 'orange');
-  }
-});
-
-async function tryAppendPickToSheet(pick) {
-  // Ajusta el rango donde tu hoja espera el input.
-  // Ejemplo: columnas A:E = competicion, local, visitante, mercado, cuota
-  const range = `${SHEET_NAME}!A1:E1`;
-
-  try {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}:append?valueInputOption=USER_ENTERED&key=${API_KEY}`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        values: [[
-          pick.competicion,
-          pick.local,
-          pick.visitante,
-          pick.mercado,
-          pick.cuota
-        ]]
-      })
-    });
-
-    if (!res.ok) {
-      console.warn('Append fallo:', res.status, await safeText(res));
-      return false;
-    }
-    return true;
-  } catch (e) {
-    console.warn('Append error de red:', e.message);
-    return false;
-  }
+  await fetch(FORM_POST_URL, { method: 'POST', mode: 'no-cors', body: form });
+  notify('✅ Pick enviado, calculando...', 'green');
+  pollResultados(5, 1200);
 }
 
-async function safeText(res) {
-  try { return await res.text(); } catch { return ''; }
-}
-
-/* ============ 10) LECTURA DE RESULTADOS (polling) ============ */
-// Ajusta aquí el rango que devuelve tus cálculos (EV, Prob, Stake, etc.)
-const RESULT_RANGE = `${SHEET_NAME}!H2:L2`;
-
-async function pollResultados(intentos = 5, esperaMs = 1000) {
+// --- LECTURA RESULTADOS ---
+async function pollResultados(intentos = 5, espera = 1000) {
   for (let i = 0; i < intentos; i++) {
     const ok = await obtenerResultados();
     if (ok) return;
-    await delay(esperaMs);
+    await new Promise(r => setTimeout(r, espera));
   }
-  notify('⌛ Resultados no disponibles aún. Vuelve a intentarlo en unos segundos.', 'gray');
+  notify('⌛ Esperando resultados...', 'gray');
 }
 
 async function obtenerResultados() {
   try {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(RESULT_RANGE)}?key=${API_KEY}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${RESULT_RANGE}?key=${GOOGLE_SHEETS_API_KEY}`;
     const res = await fetch(url);
-    if (!res.ok) {
-      console.warn('Lectura resultados fallo:', res.status);
-      return false;
-    }
     const data = await res.json();
     if (!data.values || !data.values[0]) return false;
-
-    const [EV, Prob, Stake, Yield, Recomendacion] = data.values[0];
-
+    const [EV, Prob, Stake, Yield, Reco] = data.values[0];
     $result.innerHTML = `
       <h3>Resultados</h3>
-      <p><strong>EV:</strong> ${EV ?? '-'}</p>
-      <p><strong>Probabilidad:</strong> ${Prob ?? '-'}</p>
-      <p><strong>Stake:</strong> ${Stake ?? '-'}</p>
-      <p><strong>Yield:</strong> ${Yield ?? '-'}</p>
-      <p><strong>Recomendación:</strong> ${Recomendacion ?? '-'}</p>
+      <p><b>EV:</b> ${EV ?? '-'} | <b>Probabilidad:</b> ${Prob ?? '-'}</p>
+      <p><b>Stake:</b> ${Stake ?? '-'} | <b>Yield:</b> ${Yield ?? '-'}</p>
+      <p><b>Recomendación:</b> ${Reco ?? '-'}</p>
     `;
     return true;
-  } catch (e) {
-    console.warn('Error leyendo resultados:', e.message);
+  } catch {
     return false;
   }
 }
 
-function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-/* ============ 11) UTILIDADES VARIAS ============ */
-function notify(msg, color = 'black') {
-  $result.innerHTML = `<p style="color:${color}">${msg}</p>`;
-}
-
-function savePickLocally(pick) {
-  try {
-    const key = 'miapp_picks_backup';
-    const arr = JSON.parse(localStorage.getItem(key) || '[]');
-    arr.push({ ...pick, ts: Date.now() });
-    localStorage.setItem(key, JSON.stringify(arr));
-  } catch (_) {}
-}
-
-/* ============ 12) ARRANQUE ============ */
-(function init() {
-  populateCompetitions();
-  populateMarkets();
-  // bloquea selects de equipos hasta elegir competición
-  $home.innerHTML = '<option value="">Selecciona local…</option>';
-  $away.innerHTML = '<option value="">Selecciona visitante…</option>';
-})();
+// --- MENSAJES ---
+function notify(msg, color='black'){ $result.innerHTML = `<p style="color:${color}">${msg}</p>`; }
