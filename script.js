@@ -4,7 +4,7 @@
  ************************************************************/
 
 // ⚽ API-Football
-const API_FOOTBALL_KEY = 'TU_API_FOOTBALL_KEY_AQUI'; // ← cambia por tu key real
+const API_FOOTBALL_KEY = '6DF57D1853E112002FA1139673F50218'; // ← cambia por tu key real
 const SEASON = 2025;
 
 // 📄 Google Sheets
