@@ -1,42 +1,40 @@
-// Nombre del caché (cambia el número si actualizas los archivos)
-const CACHE_NAME = 'mi-app-cache-v1';
+// service-worker.js — versión básica y eficaz
 
-// Archivos que se guardarán para uso offline
-const urlsToCache = [
+const CACHE_NAME = 'mi-app-v1';
+const FILES_TO_CACHE = [
   './',
   './index.html',
-  './manifest.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png'
+  './styles.css',
+  './script.js',
+  './manifest.json'
 ];
 
-// Instalar el service worker y cachear los archivos
+// Instalación del service worker
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
-      .then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then(cache => cache.addAll(FILES_TO_CACHE))
   );
+  self.skipWaiting();
 });
 
-// Activar el service worker y limpiar viejos cachés
+// Activación y limpieza de versiones antiguas
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames
-          .filter(name => name !== CACHE_NAME)
-          .map(name => caches.delete(name))
-      );
-    })
+    caches.keys().then(keys =>
+      Promise.all(keys.map(key => {
+        if (key !== CACHE_NAME) return caches.delete(key);
+      }))
+    )
   );
   self.clients.claim();
 });
 
-// Interceptar las peticiones y responder desde el caché si es posible
+// Intercepción de peticiones
 self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
   event.respondWith(
     caches.match(event.request)
       .then(response => response || fetch(event.request))
+      .catch(() => caches.match('./index.html'))
   );
 });
