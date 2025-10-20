@@ -1,0 +1,9 @@
+{
+  "name": "Mi App Apuestas",
+  "short_name": "Apuestas",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#e6f0ff",
+  "theme_color": "#e6f0ff",
+  "icons": []
+}
