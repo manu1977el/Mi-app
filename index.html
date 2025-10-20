@@ -161,5 +161,12 @@
   </footer>
 
   <script src="script.js"></script>
+  <script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./service-worker.js")
+      .then(() => console.log("✅ Service Worker registrado"))
+      .catch(err => console.error("❌ Error SW:", err));
+  }
+</script>
 </body>
 </html>
