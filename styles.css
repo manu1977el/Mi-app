@@ -1,0 +1,18 @@
+:root { --bg:#f7fbff; --card:#fff; --ink:#0b1e3a; --muted:#7083a3; --green:#0ea65d; --red:#d63a3a; --brand:#cfe4ff; }
+*{box-sizing:border-box} html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--brand);position:sticky;top:0}
+h1{font-size:18px;margin:0}
+main{padding:16px;display:grid;gap:16px}
+.card{background:var(--card);border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+label{display:grid;gap:6px;margin:8px 0}
+input,select,button{font-size:16px;padding:10px;border:1px solid #d4dbea;border-radius:8px}
+button{background:#eef5ff;border-color:#bed4ff}
+button:disabled{opacity:.5}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.results{margin-top:12px;display:grid;gap:8px}
+.badge{display:inline-block;padding:6px 8px;border-radius:8px;background:#eef2f8;color:var(--muted);font-weight:600}
+.badge.green{background:#e6f7ef;color:var(--green)}
+.badge.red{background:#ffebeb;color:var(--red)}
+.pick{padding:10px;border:1px solid #e7edf7;border-radius:8px;display:grid;gap:6px}
+#history{display:grid;gap:8px}
+dialog{border:0;border-radius:12px;padding:16px;width:min(420px,92vw)}
