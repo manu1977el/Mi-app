@@ -1,172 +1,120 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>⚽ mi app ⚽</title>
-  <link rel="manifest" href="manifest.json" />
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      background: #f7f9fb;
-      margin: 0;
-      padding: 0;
-    }
-
-    header {
-      background: #1e88e5;
-      color: white;
-      padding: 10px 0;
-      text-align: center;
-      font-size: 1.4em;
-      font-weight: 600;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }
-
-    main {
-      padding: 15px;
-      max-width: 700px;
-      margin: auto;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
-    }
-
-    h2 {
-      text-align: center;
-      color: #333;
-    }
-
-    label {
-      font-weight: 500;
-      display: block;
-      margin-top: 15px;
-      margin-bottom: 5px;
-      color: #444;
-    }
-
-    select, input {
-      width: 100%;
-      padding: 10px;
-      font-size: 1em;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
-    }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      font-size: 1em;
-      border: none;
-      border-radius: 6px;
-      color: white;
-      margin-top: 10px;
-      cursor: pointer;
-    }
-
-    #addMarketBtn {
-      background: #1e88e5;
-    }
-
-    #removeMarketBtn {
-      background: #d93025;
-    }
-
-    #saveBtn {
-      background: #00796b;
-    }
-
-    #clearBtn {
-      background: #555;
-    }
-
-    .market-item {
-      display: flex;
-      gap: 10px;
-      margin-top: 8px;
-    }
-
-    .market-item select {
-      flex: 2;
-    }
-
-    .market-item input {
-      flex: 1;
-    }
-
-    #resultado {
-      text-align: center;
-      margin-top: 15px;
-      font-weight: 500;
-    }
-
-    footer {
-      text-align: center;
-      padding: 20px;
-      font-size: 0.9em;
-      color: #555;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      body { background: #121212; color: #eee; }
-      main { background: #1f1f1f; color: #eee; }
-      input, select { background: #2b2b2b; color: #eee; border-color: #444; }
-      button { color: #fff; }
-    }
-  </style>
-</head>
-<body>
-  <header>⚽ mi app ⚽</header>
-
-  <main>
-    <h2>Crear nuevo pick (múltiples mercados)</h2>
-
-    <form id="pickForm">
-      <label for="competicion">Liga / Competición</label>
-      <select id="competicion">
-        <option value="">Cargando ligas...</option>
-      </select>
-
-      <label for="local">Equipo local</label>
-      <select id="local">
-        <option value="">Selecciona local...</option>
-      </select>
-
-      <label for="visitante">Equipo visitante</label>
-      <select id="visitante">
-        <option value="">Selecciona visitante...</option>
-      </select>
-
-      <label for="fecha">Fecha</label>
-      <input type="date" id="fecha" />
-
-      <label for="hora">Hora</label>
-      <input type="time" id="hora" />
-
-      <label>Mercados del pick (ilimitados)</label>
-      <div id="marketsContainer"></div>
-
-      <button type="button" id="addMarketBtn">+ Añadir mercado</button>
-      <button type="button" id="removeMarketBtn">– Quitar último</button>
-      <button type="submit" id="saveBtn">Guardar pick</button>
-      <button type="button" id="clearBtn">Limpiar</button>
-    </form>
-
-    <div id="resultado"></div>
-  </main>
-
-  <footer>
-    © 2025 Apuestas PRO — API Football (temporada 2025/26)
-  </footer>
-
-  <script src="script.js"></script>
-  <script>
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./service-worker.js")
-      .then(() => console.log("✅ Service Worker registrado"))
-      .catch(err => console.error("❌ Error SW:", err));
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>⚽ mi app ⚽</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f6f8fb;
+    margin: 0;
+    padding: 0;
   }
-</script>
+  header {
+    background-color: #2196f3;
+    color: white;
+    text-align: center;
+    padding: 1rem;
+    font-size: 1.3rem;
+  }
+  main {
+    padding: 1rem;
+    max-width: 600px;
+    margin: auto;
+  }
+  h2 {
+    text-align: center;
+  }
+  label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+  }
+  select, input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 1rem;
+  }
+  #addMarket { background-color: #2196f3; }
+  #removeMarket { background-color: #d9534f; }
+  #savePick { background-color: #007bff; }
+  #clear { background-color: #6c757d; }
+  .mercado-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+  .mercado-row select, .mercado-row input {
+    width: 48%;
+  }
+  footer {
+    text-align: center;
+    padding: 10px;
+    color: gray;
+  }
+</style>
+</head>
+
+<body>
+<header>⚽ mi app ⚽</header>
+<main>
+  <h2>Crear nuevo pick (múltiples mercados)</h2>
+
+  <label for="liga">Liga / Competición</label>
+  <select id="liga">
+    <option value="">Cargando ligas...</option>
+  </select>
+
+  <label for="local">Equipo local</label>
+  <select id="local">
+    <option value="">Selecciona local...</option>
+  </select>
+
+  <label for="visitante">Equipo visitante</label>
+  <select id="visitante">
+    <option value="">Selecciona visitante...</option>
+  </select>
+
+  <label for="fecha">Fecha</label>
+  <input type="date" id="fecha" />
+
+  <label for="hora">Hora</label>
+  <input type="time" id="hora" />
+
+  <label>Mercados del pick (ilimitados)</label>
+  <div id="mercadosContainer">
+    <div class="mercado-row">
+      <select class="tipo">
+        <option value="1X2">1X2</option>
+        <option value="Over/Under 0.5">Over/Under 0.5</option>
+        <option value="Over/Under 1.5">Over/Under 1.5</option>
+        <option value="Ambos marcan">Ambos marcan</option>
+        <option value="Hándicap">Hándicap</option>
+      </select>
+      <input type="number" step="0.01" placeholder="Cuota" class="cuota">
+    </div>
+  </div>
+
+  <button id="addMarket">+ Añadir mercado</button>
+  <button id="removeMarket">– Quitar último</button>
+  <button id="savePick">Guardar pick</button>
+  <button id="clear">Limpiar</button>
+</main>
+
+<footer>© manu1977el.github.io</footer>
+<script src="script.js"></script>
 </body>
 </html>
