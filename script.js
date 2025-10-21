@@ -207,13 +207,16 @@ function guardarPick(e) {
   }));
 
   const params = new URLSearchParams();
-  params.append("entry.665021726", Date.now());
-  params.append("entry.985276955", `${local} - ${visitante}`);
-  params.append("entry.808650380", liga);
-  params.append("entry.867530469", fecha);
-  params.append("entry.488584768", hora);
-  params.append("entry.1168131272", mercados.map(m => m.tipo).join(" | "));
-  params.append("entry.2145825007", mercados.map(m => m.cuota).join(" | "));
+// 🧾 Armar el campo “Partido” en el formato correcto: “Local-Visitante”
+const partido = `${local.replace(/\s+/g, '')}-${visitante.replace(/\s+/g, '')}`;
+
+params.append("entry.665021726", Date.now()); // ID
+params.append("entry.985276955", partido);    // Partido (formato único)
+params.append("entry.808650380", liga);       // Liga
+params.append("entry.867530469", fecha);      // Fecha
+params.append("entry.488584768", hora);       // Hora
+params.append("entry.116813127", mercados.map(m => m.tipo).join(" | ")); // Mercado
+params.append("entry.2145825007", mercados.map(m => m.cuota).join(" | ")); // Cuota
 
   fetch(FORM_URL, { method: "POST", body: params })
     .then(() => mostrarMensaje("✅ Pick enviado correctamente.", "verde"))
